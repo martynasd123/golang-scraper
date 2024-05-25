@@ -1,8 +1,10 @@
 package authController
 
 import (
-	"github.com/gofiber/fiber/v2"
-	authService "github.com/martynasd123/golang-scraper/services"
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+	authService "github.com/martynasd123/golang-scraper/services/auth"
 )
 
 type AuthController struct {
@@ -13,14 +15,14 @@ func NewAuthController(service *authService.AuthService) *AuthController {
 	return &AuthController{service: service}
 }
 
-func (*AuthController) Authenticate(ctx *fiber.Ctx) error {
-	return ctx.SendString("about")
+func (*AuthController) Authenticate(ctx *gin.Context) {
+	ctx.String(http.StatusOK, "Authenticate")
 }
 
-func (*AuthController) RefreshToken(ctx *fiber.Ctx) error {
-	return ctx.SendString("about")
+func (*AuthController) RefreshToken(ctx *gin.Context) {
+	ctx.String(http.StatusOK, "RefreshToken")
 }
 
-func (*AuthController) LogOut(ctx *fiber.Ctx) error {
-	return ctx.SendString("about")
+func (*AuthController) LogOut(ctx *gin.Context) {
+	ctx.String(http.StatusOK, "LogOut")
 }

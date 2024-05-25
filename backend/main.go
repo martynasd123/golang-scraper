@@ -1,36 +1,40 @@
 package main
 
 import (
-	"github.com/gofiber/fiber/v2"
+	"github.com/gin-gonic/gin"
 	controllers "github.com/martynasd123/golang-scraper/controllers"
-	services "github.com/martynasd123/golang-scraper/services"
+	authService "github.com/martynasd123/golang-scraper/services/auth"
+	scrapeService "github.com/martynasd123/golang-scraper/services/scrape"
+	"github.com/martynasd123/golang-scraper/services/scrape/storage"
 )
 
-func DefineAuthRoutes(router fiber.Router) {
-	service := services.NewAuthService()
+func DefineAuthRoutes(router *gin.RouterGroup) {
+	service := authService.NewAuthService()
 	controller := controllers.NewAuthController(service)
 
-	router.Post("/", controller.Authenticate)
-	router.Post("/refresh-token", controller.RefreshToken)
-	router.Post("/logout", controller.LogOut)
+	router.POST("/", controller.Authenticate)
+	router.POST("/refresh-token", controller.RefreshToken)
+	router.POST("/logout", controller.LogOut)
 }
 
-func DefineScrapeRoutes(router fiber.Router) {
-	service := services.NewScrapeService()
+func DefineScrapeRoutes(router *gin.RouterGroup) {
+	inMemoryStorage := storage.CreateInMemoryStorage()
+	service := scrapeService.NewScrapeService(inMemoryStorage)
 	controller := controllers.NewScrapeController(service)
 
-	router.Post("/add-task", controller.AddTask)
+	router.POST("/add-task", controller.AddTask)
+	router.GET("/:id/listen", controller.Listen)
 }
 
-func DefineRoutes(router fiber.Router) {
+func DefineRoutes(router *gin.RouterGroup) {
 	DefineAuthRoutes(router.Group("/auth"))
 	DefineScrapeRoutes(router.Group("/scrape"))
 }
 
 func main() {
-	app := fiber.New()
+	app := gin.Default()
 
 	DefineRoutes(app.Group("/api"))
 
-	app.Listen(":3000")
+	app.Run()
 }
