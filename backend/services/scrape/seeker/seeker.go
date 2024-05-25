@@ -7,71 +7,73 @@ import (
 	"net/url"
 	"time"
 
-	models "github.com/martynasd123/golang-scraper/models/scrape"
+	. "github.com/martynasd123/golang-scraper/models/scrape"
 	"github.com/martynasd123/golang-scraper/services/scrape/spider"
 	"golang.org/x/net/html"
 )
 
-const MAX_PROCESSING_NODES = 100
-
 type Seeker struct {
-	link    *url.URL
-	updates chan models.ProcessingUpdate
+	UpdateChannel chan ProcessingUpdate
+	link          *url.URL
+}
+
+type UpdatesSubscriber struct {
 }
 
 func CreateSeeker(link *url.URL) *Seeker {
-	return &Seeker{link, make(chan models.ProcessingUpdate)}
+	return &Seeker{
+		UpdateChannel: make(chan ProcessingUpdate),
+		link:          link,
+	}
 }
 
-func (seeker *Seeker) RegisterListener() (int, chan models.ProcessingState) {
-	// todo
-	return 0, make(chan models.ProcessingState)
-}
-
-func (seeker *Seeker) UnregisterListener(listenerId int) error {
-	// todo
-	return nil
-}
-
-func (seeker *Seeker) processPage(rootNode *html.Node) error {
+func (seeker *Seeker) processPage(rootNode *html.Node) {
 	// Perform initial parsing
 	baseInfo := ParseBaseInfo(rootNode, *seeker.link)
 
 	// Send the base page info
-	seeker.updates <- models.PageBaseInfoUpdate{
+	seeker.UpdateChannel <- &PageBaseInfoUpdate{
 		BaseInfo: baseInfo,
 	}
 
-	// Instantiate spider
-	spider := spider.CreateSpider(seeker.updates)
+	// Instantiate spiderInstance
+	spiderInstance := spider.CreateSpider(seeker.UpdateChannel)
 
-	spider.Start()
+	done := spiderInstance.Start()
 	for _, link := range baseInfo.Links {
-		spider.LinksChannel <- &link
+		spiderInstance.LinksChannel <- &link
 	}
-	close(spider.LinksChannel)
-	return nil
+	// Indicate we have no more links to process
+	close(spiderInstance.LinksChannel)
+
+	// Wait for spiders to finish
+	<-done
+
+	seeker.UpdateChannel <- &FinishedUpdate{}
 }
 
-func (seeker *Seeker) monitor() {
-	for update := range seeker.updates {
-		fmt.Println(update)
-	}
-}
-
+// Seek starts the seeking process. Updates are sent through seeker.UpdateChannel until it is closed.
 func (seeker *Seeker) Seek() {
-	go seeker.monitor()
+	defer close(seeker.UpdateChannel)
 
 	client := http.Client{
-		Timeout: 5 * time.Second,
+		Timeout: 10 * time.Second,
 	}
 	resp, err := client.Get(seeker.link.String())
 	if err != nil {
-		log.Fatalln(err)
+		seeker.UpdateChannel <- &ErrorUpdate{Error: fmt.Errorf("failed to GET initial page: %v", err)}
+		return
 	}
 
-	defer resp.Body.Close()
-
 	document, err := html.Parse(resp.Body)
+	if err != nil {
+		seeker.UpdateChannel <- &ErrorUpdate{Error: fmt.Errorf("failed to parse html: %v", err)}
+		return
+	}
+	err = resp.Body.Close()
+	if err != nil {
+		log.Printf("failed to close response body: %v", err)
+	}
+
 	seeker.processPage(document)
 }
