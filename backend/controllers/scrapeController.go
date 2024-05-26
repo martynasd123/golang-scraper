@@ -31,13 +31,14 @@ func (controller *ScrapeController) AddTask(ctx *gin.Context) {
 
 	parsedUrl, err := url.Parse(body.Link)
 	if err != nil {
-		// todo
+		ctx.String(http.StatusBadRequest, "Invalid URL")
 		return
 	}
 
 	if parsedUrl.Scheme != "https" && parsedUrl.Scheme != "http" {
 		// Only http/https is supported
 		// todo
+		ctx.String(http.StatusBadRequest, "Invalid URL")
 		return
 	}
 
@@ -49,9 +50,20 @@ func (controller *ScrapeController) AddTask(ctx *gin.Context) {
 	id, err := controller.service.AddTask(parsedUrl)
 	if err != nil {
 		log.Printf("error occurred when adding task: %v", err)
+		ctx.String(http.StatusInternalServerError, "something went wrong")
+		return
 	}
 
 	ctx.JSON(http.StatusOK, response.CreateAddTaskResponse(id))
+}
+
+func (controller *ScrapeController) GetAllTasks(ctx *gin.Context) {
+	tasks := controller.service.GetAllTasks()
+	taskListItems := []*response.TaskListItem{}
+	for _, task := range tasks {
+		taskListItems = append(taskListItems, response.CreateTaskListItemResponse(task))
+	}
+	ctx.JSON(http.StatusOK, taskListItems)
 }
 
 func (controller *ScrapeController) Listen(ctx *gin.Context) {

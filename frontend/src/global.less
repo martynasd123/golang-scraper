@@ -15,10 +15,34 @@
 @color-primary-variant: #3700B3;
 @color-secondary: #03DaC6;
 @color-background: #fff;
+@color-surface: #f4f4f4;
 @color-neutral: #e8e8e8;
 @color-text: #000;
 @color-error: #f1c0c9;
 @color-success: #b6eab6;
+
+@font-weight-thin:       100;
+@font-weight-extra-light: 200;
+@font-weight-light:      300;
+@font-weight-normal:     400;
+@font-weight-medium:     500;
+@font-weight-semi-bold:  600;
+@font-weight-bold:       700;
+@font-weight-extra-bold: 800;
+@font-weight-black:      900;
+
+@base-font-size: 16px;
+
+@font-size-xs: 0.75rem;
+@font-size-sm: 0.875rem;
+@font-size-md: 1rem;
+@font-size-lg: 1.125rem;
+@font-size-xl: 1.5rem;
+@font-size-xxl: 2rem;
+
+html {
+  font-size: @base-font-size;
+}
 
 html, body, #root {
   width: 100%;
@@ -29,7 +53,12 @@ html, body, #root {
   background-color: @color-background;
 }
 
-input[type=submit] {
+h2, h3 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+input[type=submit], input[type=button] {
   background-color: @color-primary;
   color: @color-background;
   padding: @padding-md;
@@ -45,7 +74,7 @@ input[type=submit] {
 }
 
 
-input[type=text], input[type=password] {
+input[type=text], input[type=password], input[type=url] {
   background-color: @color-background;
   padding: @padding-md;
   border: 1px solid @color-neutral;

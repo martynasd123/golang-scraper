@@ -41,12 +41,13 @@ func WireContext() *ApplicationContext {
 func DefineAuthRoutes(router *gin.RouterGroup, context *ApplicationContext) {
 	router.POST("/", context.AuthController.Authenticate)
 	router.POST("/refresh-token", context.AuthController.RefreshToken)
-	router.POST("/logout", context.RequireAuthMiddleware, context.AuthController.LogOut)
+	router.POST("/log-out", context.RequireAuthMiddleware, context.AuthController.LogOut)
 }
 
 func DefineScrapeRoutes(router *gin.RouterGroup, context *ApplicationContext) {
 	router.POST("/add-task", context.ScrapeController.AddTask)
 	router.GET("/:id/listen", context.ScrapeController.Listen)
+	router.GET("/tasks", context.ScrapeController.GetAllTasks)
 }
 
 func DefineRoutes(router *gin.RouterGroup, context *ApplicationContext) {

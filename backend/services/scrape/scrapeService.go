@@ -178,3 +178,7 @@ func (service *ScrapeService) AddTask(link *url.URL) (int, error) {
 func (service *ScrapeService) GetTaskById(id int) (*storage.Task, error) {
 	return service.storage.RetrieveTaskById(id)
 }
+
+func (service *ScrapeService) GetAllTasks() []*storage.Task {
+	return service.storage.GetAllTasks()
+}

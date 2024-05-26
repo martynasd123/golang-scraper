@@ -6,6 +6,9 @@ type ClassName = DynamicEntry | string;
 
 const classNames = (...args: ClassName[]): string => {
     return args.map(item => {
+        if (item == null) {
+            return ""
+        }
         if (typeof item === "string") {
             return item;
         }

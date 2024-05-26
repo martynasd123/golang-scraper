@@ -41,3 +41,25 @@ func CreateTaskStatusResponse(task *Task) *TaskStatusResponse {
 	response.Error = task.Error
 	return response
 }
+
+type TaskListItem struct {
+	Id                *int    `json:"id"`
+	Link              string  `json:"link"`
+	InaccessibleLinks *int    `json:"inaccessibleLinks"`
+	PageTitle         *string `json:"pageTitle"`
+	CrawledLinks      int     `json:"crawledLinks"`
+	Status            string  `json:"status"`
+	Error             *string `json:"error"`
+}
+
+func CreateTaskListItemResponse(task *Task) *TaskListItem {
+	response := &TaskListItem{}
+	response.Id = task.Id
+	response.InaccessibleLinks = task.InaccessibleLinks
+	response.PageTitle = task.PageTitle
+	response.Link = task.Link.String()
+	response.CrawledLinks = task.CrawledLinks
+	response.Error = task.Error
+	response.Status = task.Status
+	return response
+}

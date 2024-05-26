@@ -3,7 +3,9 @@ package storage
 import (
 	"errors"
 	"net/url"
+	"sort"
 	"sync"
+	"time"
 )
 
 type Task struct {
@@ -19,9 +21,11 @@ type Task struct {
 	LoginFormPresent  *bool
 	CrawledLinks      int
 	Error             *string
+	CTime             *time.Time
 }
 
 func CreateTaskInitial(status string, link *url.URL) *Task {
+	currentTime := time.Now()
 	return &Task{
 		Id:                nil,
 		Link:              *link,
@@ -32,6 +36,7 @@ func CreateTaskInitial(status string, link *url.URL) *Task {
 		HtmlVersion:       nil,
 		PageTitle:         nil,
 		HeadingsByLevel:   nil,
+		CTime:             &currentTime,
 	}
 }
 
@@ -46,6 +51,9 @@ type TaskDao interface {
 
 	// RetrieveTaskById retrieves task by given ID, or nil if not found
 	RetrieveTaskById(id int) (*Task, error)
+
+	// Returns all tasks sorted by creation order
+	GetAllTasks() []*Task
 }
 
 // TaskInMemoryDao is a simple in-memory storage mechanism for tasks.
@@ -55,6 +63,19 @@ type TaskInMemoryDao struct {
 	tasks  map[int]Task
 	lastId int
 	mu     sync.RWMutex
+}
+
+func (storage *TaskInMemoryDao) GetAllTasks() []*Task {
+	storage.mu.RLock()
+	defer storage.mu.RUnlock()
+	tasks := make([]*Task, 0, len(storage.tasks))
+	for _, task := range storage.tasks {
+		tasks = append(tasks, &task)
+	}
+	sort.Slice(tasks, func(i, j int) bool {
+		return tasks[i].CTime.Compare(*tasks[j].CTime) > 0
+	})
+	return tasks
 }
 
 func (storage *TaskInMemoryDao) StoreTask(task *Task) (int, error) {
@@ -79,10 +100,10 @@ func (storage *TaskInMemoryDao) StoreTask(task *Task) (int, error) {
 
 func (storage *TaskInMemoryDao) RetrieveTaskById(id int) (*Task, error) {
 	storage.mu.RLock()
+	defer storage.mu.RUnlock()
 	if value, ok := storage.tasks[id]; ok {
 		return &value, nil
 	}
-	defer storage.mu.RUnlock()
 	return nil, errors.New("no task found with id " + string(id))
 }
 
