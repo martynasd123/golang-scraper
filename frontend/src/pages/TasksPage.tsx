@@ -7,6 +7,7 @@ import {useNavigate} from "react-router-dom";
 import {AlertContext, AlertType} from "../contexts/AlertContext";
 import {AxiosError} from "axios";
 import { FaAngleRight as RightArrow } from "react-icons/fa6";
+import {HeaderContext} from "../contexts/HeaderContext";
 
 interface TaskCard {
     id: number;
@@ -49,7 +50,7 @@ const TasksPage: React.FC = () => {
         e.preventDefault()
         sendAddTaskRequest({link: newScrapeTaskUrl})
             .then(response => {
-                navigate(`/tasks/${response.data.id}`)
+                navigate(`/task/${response.data.id}`)
             }).catch(err => showAlert({
             type: AlertType.WARNING,
             message: mapAddTaskErrorMessage(err)
@@ -91,7 +92,7 @@ const TasksPage: React.FC = () => {
                     Error encountered: {task.error}
                 </div>}
             </div>
-            <div onClick={() => navigate(`/tasks/${task.id}`)}>
+            <div onClick={() => navigate(`/task/${task.id}`)}>
                 <RightArrow/>
             </div>
         </CardComponent>)}

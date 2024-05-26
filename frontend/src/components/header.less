@@ -1,16 +1,51 @@
 @import "../global.less";
 
 .header {
-  height: 30px;
   color: @color-background;
-  padding: @padding-md;
   background-color: @color-primary;
+  width: 100%;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
 
-  h2 {
-    font-weight: @font-weight-medium;
-    font-size: @font-size-md;
+  .header-content {
+    flex: 1;
+    height: 30px;
+    padding: @padding-md;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    span {
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-start;
+      align-items: center;
+      gap: @margin-md;
+      
+      .back-button {
+        cursor: pointer;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+    }
+
+    h2 {
+      font-weight: @font-weight-medium;
+      font-size: @font-size-md;
+    }
   }
+
+  .progress-indicator-container {
+    position: relative;
+
+    .progress-indicator {
+      background-color: @color-secondary;
+      height: 4px;
+      position: absolute;
+      left: 0;
+      transition: width 0.5s
+    }
+  }
+
 }

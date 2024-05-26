@@ -1,12 +1,8 @@
 import axios from "axios";
 
-export const Client = axios.create({
-    withCredentials: false
-});
+export const Client = axios.create();
 
-export const AuthenticatedClient = axios.create({
-    withCredentials: true
-});
+export const AuthenticatedClient = axios.create();
 
 AuthenticatedClient.interceptors.response.use(null, async (err) => {
     if (err.response?.status === 403) {
@@ -14,7 +10,6 @@ AuthenticatedClient.interceptors.response.use(null, async (err) => {
         try {
             await axios({
                 method: 'post',
-                withCredentials: true,
                 url: "/api/auth/refresh-token",
                 data: {
                     username: localStorage.getItem("username")

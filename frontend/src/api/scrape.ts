@@ -1,4 +1,4 @@
-import {Client} from "./client";
+import {AuthenticatedClient, Client} from "./client";
 import {AxiosResponse} from "axios";
 
 interface AddTaskRequest {
@@ -19,8 +19,30 @@ interface TaskListItemResponse {
     status: string;
 }
 
-export const sendAddTaskRequest = (request: AddTaskRequest) => Client
+export enum TaskStatus {
+    STATUS_PENDING = "PENDING",
+    STATUS_INITIATING = "INITIATING",
+    STATUS_TRYING_LINKS = "TRYING_LINKS",
+    STATUS_FINISHED = "FINISHED",
+    STATUS_ERROR = "ERROR"
+}
+
+export interface TaskStateUpdate {
+    id?: number;
+    status: TaskStatus;
+    link: string;
+    externalLinks?: number;
+    internalLinks?: number;
+    inaccessibleLinks?: number;
+    htmlVersion?: string;
+    pageTitle?: string;
+    headingsByLevel?: [number, number, number, number, number, number];
+    crawledLinks: number;
+    error?: string;
+}
+
+export const sendAddTaskRequest = (request: AddTaskRequest) => AuthenticatedClient
     .post<AddTaskRequest, AxiosResponse<AddTaskResponse>>("/api/scrape/add-task", request)
 
-export const sendGetTasksRequest = () => Client
+export const sendGetTasksRequest = () => AuthenticatedClient
     .get<AddTaskRequest, AxiosResponse<TaskListItemResponse[]>>("/api/scrape/tasks")

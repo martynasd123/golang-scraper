@@ -46,7 +46,7 @@ func DefineAuthRoutes(router *gin.RouterGroup, context *ApplicationContext) {
 
 func DefineScrapeRoutes(router *gin.RouterGroup, context *ApplicationContext) {
 	router.POST("/add-task", context.ScrapeController.AddTask)
-	router.GET("/:id/listen", context.ScrapeController.Listen)
+	router.GET("/task/:id/listen", context.ScrapeController.Listen)
 	router.GET("/tasks", context.ScrapeController.GetAllTasks)
 }
 

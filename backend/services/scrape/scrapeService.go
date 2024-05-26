@@ -33,7 +33,7 @@ func CreateTaskService(taskStorage storage.TaskDao) *ScrapeService {
 func (service *ScrapeService) scrape() {
 	for task := range service.queuedTasks {
 		// Change task status and store in the database
-		task.Status = scrape.StatusStarted
+		task.Status = scrape.StatusInitiating
 		// Persist in storage
 		_, err := service.storage.StoreTask(task)
 		if err != nil {
@@ -116,6 +116,7 @@ func updateTaskBaseInfo(task *storage.Task, update *scrape.PageBaseInfoUpdate) {
 	task.HeadingsByLevel = &baseInfo.HeadingsByLevel
 	task.LoginFormPresent = &baseInfo.LoginFormPresent
 	task.InaccessibleLinks = new(int)
+	task.Status = scrape.StatusTryingLinks
 }
 
 func (service *ScrapeService) init() {

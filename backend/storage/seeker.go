@@ -21,7 +21,7 @@ type Task struct {
 	LoginFormPresent  *bool
 	CrawledLinks      int
 	Error             *string
-	CTime             *time.Time
+	CTime             time.Time
 }
 
 func CreateTaskInitial(status string, link *url.URL) *Task {
@@ -36,7 +36,7 @@ func CreateTaskInitial(status string, link *url.URL) *Task {
 		HtmlVersion:       nil,
 		PageTitle:         nil,
 		HeadingsByLevel:   nil,
-		CTime:             &currentTime,
+		CTime:             currentTime,
 	}
 }
 
@@ -73,7 +73,7 @@ func (storage *TaskInMemoryDao) GetAllTasks() []*Task {
 		tasks = append(tasks, &task)
 	}
 	sort.Slice(tasks, func(i, j int) bool {
-		return tasks[i].CTime.Compare(*tasks[j].CTime) > 0
+		return tasks[i].CTime.Compare(tasks[j].CTime) > 0
 	})
 	return tasks
 }
@@ -93,8 +93,8 @@ func (storage *TaskInMemoryDao) StoreTask(task *Task) (int, error) {
 	}
 	storage.lastId = storage.lastId + 1
 	newId := storage.lastId
-	storage.tasks[newId] = *task
 	task.Id = &newId
+	storage.tasks[newId] = *task
 	return newId, nil
 }
 

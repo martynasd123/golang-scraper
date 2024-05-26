@@ -50,11 +50,7 @@ func (spider *Spider) startInstance() {
 	for link := range spider.LinksChannel {
 		result := spider.Crawl(link)
 		if result != nil {
-			select {
-			case spider.resultsChannel <- result:
-			default:
-				// Channel is closed
-			}
+			spider.resultsChannel <- result
 		}
 	}
 	spider.waitGroup.Done()

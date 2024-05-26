@@ -10,10 +10,14 @@ const (
 )
 
 const (
-	StatusPending  = "PENDING"
-	StatusStarted  = "STARTED"
-	StatusFinished = "FINISHED"
-	StatusError    = "ERROR"
+	// Did not start the task yet
+	StatusPending = "PENDING"
+	// Performing the initial GET request and parsing the page
+	StatusInitiating = "INITIATING"
+	// Trying to access all related links
+	StatusTryingLinks = "TRYING_LINKS"
+	StatusFinished    = "FINISHED"
+	StatusError       = "ERROR"
 )
 
 // ProcessingUpdate is the interface for all seeker updates

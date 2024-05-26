@@ -1,0 +1,33 @@
+@import "../global.less";
+
+.err-container {
+  color: @color-error
+}
+
+.task-page-loader-wrapper {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+.task-info-fields-container {
+  display: flex;
+  flex-direction: column;
+  .task-info-field {
+    .row {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+    }
+
+    &::after {
+      content: " ";
+      display: block;
+      width: 100%;
+      background-color: @color-neutral;
+      height: 1px;
+    }
+  }
+}

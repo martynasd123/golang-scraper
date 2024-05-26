@@ -79,7 +79,7 @@ func (controller *ScrapeController) Listen(ctx *gin.Context) {
 	if err != nil {
 		if err.Error() == "task already finished" {
 			task, _ := controller.service.GetTaskById(taskId)
-			ctx.SSEvent("update", response.CreateTaskStatusResponse(task))
+			ctx.SSEvent("message", response.CreateTaskStatusResponse(task))
 		} else if strings.HasPrefix(err.Error(), "no task found with id") {
 			ctx.String(400, "invalid task id")
 		} else {
@@ -102,7 +102,7 @@ func (controller *ScrapeController) Listen(ctx *gin.Context) {
 					// No more data
 					return false
 				}
-				ctx.SSEvent("update", response.CreateTaskStatusResponse(&task))
+				ctx.SSEvent("message", response.CreateTaskStatusResponse(&task))
 				return true
 			}
 		}
