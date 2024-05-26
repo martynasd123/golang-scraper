@@ -2,39 +2,73 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
-	controllers "github.com/martynasd123/golang-scraper/controllers"
-	authService "github.com/martynasd123/golang-scraper/services/auth"
-	scrapeService "github.com/martynasd123/golang-scraper/services/scrape"
-	"github.com/martynasd123/golang-scraper/services/scrape/storage"
+	. "github.com/martynasd123/golang-scraper/controllers"
+	. "github.com/martynasd123/golang-scraper/services/auth"
+	. "github.com/martynasd123/golang-scraper/services/scrape"
+	"github.com/martynasd123/golang-scraper/storage"
+	"log"
 )
 
-func DefineAuthRoutes(router *gin.RouterGroup) {
-	service := authService.NewAuthService()
-	controller := controllers.NewAuthController(service)
+type ApplicationContext struct {
+	AuthService   *AuthService
+	ScrapeService *ScrapeService
 
-	router.POST("/", controller.Authenticate)
-	router.POST("/refresh-token", controller.RefreshToken)
-	router.POST("/logout", controller.LogOut)
+	AuthController   *AuthController
+	ScrapeController *ScrapeController
+
+	AuthDao storage.AuthDao
+	TaskDao storage.TaskDao
+
+	RequireAuthMiddleware gin.HandlerFunc
 }
 
-func DefineScrapeRoutes(router *gin.RouterGroup) {
-	inMemoryStorage := storage.CreateInMemoryStorage()
-	service := scrapeService.NewScrapeService(inMemoryStorage)
-	controller := controllers.NewScrapeController(service)
+func WireContext() *ApplicationContext {
+	ctx := new(ApplicationContext)
 
-	router.POST("/add-task", controller.AddTask)
-	router.GET("/:id/listen", controller.Listen)
+	ctx.AuthDao = storage.CreateAuthInMemoryDao()
+	ctx.TaskDao = storage.CreateTaskInMemoryDao()
+
+	ctx.AuthService = CreateAuthService(ctx.AuthDao)
+	ctx.ScrapeService = CreateTaskService(ctx.TaskDao)
+
+	ctx.AuthController = CreateAuthController(ctx.AuthService)
+	ctx.ScrapeController = CreateScrapeController(ctx.ScrapeService)
+
+	ctx.RequireAuthMiddleware = RequireAuth(ctx.AuthService)
+	return ctx
 }
 
-func DefineRoutes(router *gin.RouterGroup) {
-	DefineAuthRoutes(router.Group("/auth"))
-	DefineScrapeRoutes(router.Group("/scrape"))
+func DefineAuthRoutes(router *gin.RouterGroup, context *ApplicationContext) {
+	router.POST("/", context.AuthController.Authenticate)
+	router.POST("/refresh-token", context.AuthController.RefreshToken)
+	router.POST("/logout", context.RequireAuthMiddleware, context.AuthController.LogOut)
+}
+
+func DefineScrapeRoutes(router *gin.RouterGroup, context *ApplicationContext) {
+	router.POST("/add-task", context.ScrapeController.AddTask)
+	router.GET("/:id/listen", context.ScrapeController.Listen)
+}
+
+func DefineRoutes(router *gin.RouterGroup, context *ApplicationContext) {
+	DefineAuthRoutes(router.Group("/auth"), context)
+
+	scrapeGroup := router.Group("/scrape")
+	scrapeGroup.Use(context.RequireAuthMiddleware)
+	DefineScrapeRoutes(scrapeGroup, context)
 }
 
 func main() {
+	context := WireContext()
+
+	// For testing purposes
+	err := context.AuthService.CreateFakeUser("username", "password")
+	if err != nil {
+		log.Fatalln("Failed to create fake user:", err)
+	}
+
 	app := gin.Default()
 
-	DefineRoutes(app.Group("/api"))
+	DefineRoutes(app.Group("/api"), context)
 
 	app.Run()
 }

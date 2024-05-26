@@ -1,7 +1,7 @@
 package scrape
 
 import (
-	. "github.com/martynasd123/golang-scraper/services/scrape/storage"
+	. "github.com/martynasd123/golang-scraper/storage"
 )
 
 type AddTaskResponse struct {

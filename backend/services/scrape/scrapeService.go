@@ -4,7 +4,7 @@ import (
 	"errors"
 	"github.com/martynasd123/golang-scraper/models/scrape"
 	. "github.com/martynasd123/golang-scraper/services/scrape/seeker"
-	"github.com/martynasd123/golang-scraper/services/scrape/storage"
+	"github.com/martynasd123/golang-scraper/storage"
 	"github.com/martynasd123/golang-scraper/utils/event"
 	"log"
 	"net/url"
@@ -12,16 +12,16 @@ import (
 
 const MaxInstances = 3
 
-type Service struct {
+type ScrapeService struct {
 	stateBroker *event.StateBroker[int, storage.Task]
 	// Task ID to seeker map
 	queuedTasks chan *storage.Task
 	// Task storage interface
-	storage storage.TaskStorage
+	storage storage.TaskDao
 }
 
-func NewScrapeService(taskStorage storage.TaskStorage) *Service {
-	scrapeService := &Service{
+func CreateTaskService(taskStorage storage.TaskDao) *ScrapeService {
+	scrapeService := &ScrapeService{
 		storage:     taskStorage,
 		stateBroker: event.CreateStateBroker[int, storage.Task](),
 		queuedTasks: make(chan *storage.Task),
@@ -30,7 +30,7 @@ func NewScrapeService(taskStorage storage.TaskStorage) *Service {
 	return scrapeService
 }
 
-func (service *Service) scrape() {
+func (service *ScrapeService) scrape() {
 	for task := range service.queuedTasks {
 		// Change task status and store in the database
 		task.Status = scrape.StatusStarted
@@ -118,13 +118,13 @@ func updateTaskBaseInfo(task *storage.Task, update *scrape.PageBaseInfoUpdate) {
 	task.InaccessibleLinks = new(int)
 }
 
-func (service *Service) init() {
+func (service *ScrapeService) init() {
 	for i := 0; i < MaxInstances; i++ {
 		go service.scrape()
 	}
 }
 
-func (service *Service) RegisterListener(taskId int) (err error, data <-chan storage.Task, done chan<- struct{}) {
+func (service *ScrapeService) RegisterListener(taskId int) (err error, data <-chan storage.Task, done chan<- struct{}) {
 	stateBroker, err := service.stateBroker.GetStateBroadcaster(taskId)
 	if err != nil {
 		task, err := service.storage.RetrieveTaskById(taskId)
@@ -150,7 +150,7 @@ func (service *Service) RegisterListener(taskId int) (err error, data <-chan sto
 // Returns:
 //
 //	int: The unique seeker identifier
-func (service *Service) AddTask(link *url.URL) (int, error) {
+func (service *ScrapeService) AddTask(link *url.URL) (int, error) {
 	task := storage.CreateTaskInitial(scrape.StatusPending, link)
 
 	// Save the newly created task
@@ -159,7 +159,7 @@ func (service *Service) AddTask(link *url.URL) (int, error) {
 		return 0, err
 	}
 
-	// Create new state broadcaster
+	// CreateTaskService new state broadcaster
 	broadcaster, err := service.stateBroker.AddStateBroadcaster(newId)
 	if err != nil {
 		return -1, err
@@ -175,6 +175,6 @@ func (service *Service) AddTask(link *url.URL) (int, error) {
 	return newId, nil
 }
 
-func (service *Service) GetTaskById(id int) (*storage.Task, error) {
+func (service *ScrapeService) GetTaskById(id int) (*storage.Task, error) {
 	return service.storage.RetrieveTaskById(id)
 }

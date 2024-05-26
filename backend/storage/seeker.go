@@ -35,8 +35,8 @@ func CreateTaskInitial(status string, link *url.URL) *Task {
 	}
 }
 
-// TaskStorage as an interface to some storage mechanism (database, in-memory, some other...)
-type TaskStorage interface {
+// TaskDao as an interface to some storage mechanism (database, in-memory, some other...)
+type TaskDao interface {
 
 	// StoreTask stores tasks in the database. If the task is provided with an ID, overwrite existing task with
 	// that id. If id is nil, insert a new task.
@@ -48,16 +48,16 @@ type TaskStorage interface {
 	RetrieveTaskById(id int) (*Task, error)
 }
 
-// InMemoryStorage is a simple in-memory storage mechanism for tasks.
+// TaskInMemoryDao is a simple in-memory storage mechanism for tasks.
 // This likely shouldn't be used outside of testing environment,
 // because it offers no persistence and is not very performant.
-type InMemoryStorage struct {
+type TaskInMemoryDao struct {
 	tasks  map[int]Task
 	lastId int
 	mu     sync.RWMutex
 }
 
-func (storage *InMemoryStorage) StoreTask(task *Task) (int, error) {
+func (storage *TaskInMemoryDao) StoreTask(task *Task) (int, error) {
 	storage.mu.Lock()
 	defer storage.mu.Unlock()
 
@@ -77,7 +77,7 @@ func (storage *InMemoryStorage) StoreTask(task *Task) (int, error) {
 	return newId, nil
 }
 
-func (storage *InMemoryStorage) RetrieveTaskById(id int) (*Task, error) {
+func (storage *TaskInMemoryDao) RetrieveTaskById(id int) (*Task, error) {
 	storage.mu.RLock()
 	if value, ok := storage.tasks[id]; ok {
 		return &value, nil
@@ -86,6 +86,6 @@ func (storage *InMemoryStorage) RetrieveTaskById(id int) (*Task, error) {
 	return nil, errors.New("no task found with id " + string(id))
 }
 
-func CreateInMemoryStorage() *InMemoryStorage {
-	return &InMemoryStorage{tasks: make(map[int]Task), lastId: 0}
+func CreateTaskInMemoryDao() *TaskInMemoryDao {
+	return &TaskInMemoryDao{tasks: make(map[int]Task), lastId: 0}
 }

@@ -15,10 +15,10 @@ import (
 )
 
 type ScrapeController struct {
-	service *scrapeService.Service
+	service *scrapeService.ScrapeService
 }
 
-func NewScrapeController(service *scrapeService.Service) *ScrapeController {
+func CreateScrapeController(service *scrapeService.ScrapeService) *ScrapeController {
 	return &ScrapeController{service: service}
 }
 

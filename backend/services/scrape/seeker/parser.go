@@ -116,11 +116,6 @@ func isHeaderNode(node *html.Node) bool {
 	return node.Type == html.ElementNode && node.Data == "head"
 }
 
-func (seeker *Seeker) isExternal(link string) bool {
-	// todo
-	return true
-}
-
 func calcInternalLinks(pageLink url.URL, links *datatype.Set[url.URL]) int {
 	internalLinks := 0
 	for _, link := range links.Values() {
