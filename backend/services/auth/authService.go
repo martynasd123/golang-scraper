@@ -1,6 +1,7 @@
 package authService
 
 import (
+	"crypto/sha256"
 	"errors"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
@@ -45,6 +46,11 @@ func (authService *AuthService) Login(username, password, ip, userAgent string) 
 		return nil, nil, nil, errors.Join(ErrUserNotExist, err)
 	}
 
+	if len(user.Password) > 72 {
+		// Make sure password length does not exceed the maximum Bcrypt length
+		return nil, nil, nil, ErrPasswordIncorrect
+	}
+
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
 		return nil, nil, nil, errors.Join(ErrPasswordIncorrect, err)
@@ -52,10 +58,7 @@ func (authService *AuthService) Login(username, password, ip, userAgent string) 
 
 	refreshToken, refreshTokenValidUntil = generateRefreshToken()
 
-	user.DeviceIdentifier, err = generateDeviceIdentifier(ip, userAgent)
-	if err != nil {
-		return nil, nil, nil, errors.Join(ErrCouldNotGenerateDeviceIdentifier, err)
-	}
+	user.DeviceIdentifier = generateDeviceIdentifier(ip, userAgent)
 
 	user.RefreshToken = refreshToken
 	user.RefreshTokenValidUntil = refreshTokenValidUntil
@@ -72,13 +75,12 @@ func (authService *AuthService) Login(username, password, ip, userAgent string) 
 	return accessToken, refreshToken, refreshTokenValidUntil, nil
 }
 
-func generateDeviceIdentifier(ip string, agent string) (*string, error) {
-	password, err := bcrypt.GenerateFromPassword([]byte(ip+agent), bcrypt.DefaultCost)
-	if err != nil {
-		return nil, err
-	}
-	passwordStr := string(password)
-	return &passwordStr, err
+func generateDeviceIdentifier(ip string, agent string) *string {
+	h := sha256.New()
+	h.Write([]byte(ip + agent))
+	result := h.Sum(nil)
+	passwordStr := string(result)
+	return &passwordStr
 }
 
 func generateRefreshToken() (*string, *time.Time) {
@@ -129,8 +131,7 @@ func (authService *AuthService) RefreshToken(
 		return nil, nil, nil, ErrRefreshTokenExpired
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(*user.DeviceIdentifier), []byte(ip+agent))
-	if err != nil {
+	if generateDeviceIdentifier(ip, agent) != user.DeviceIdentifier {
 		return nil, nil, nil, errors.Join(ErrInvalidDeviceIdentifier, err)
 	}
 

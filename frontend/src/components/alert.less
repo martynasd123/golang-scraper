@@ -1,0 +1,32 @@
+@import "../global.less";
+
+.alerts-container {
+  position: absolute;
+  right: @margin-lg;
+  bottom: @margin-lg;
+  left: @margin-lg;
+  gap: @margin-md;
+  display: flex;
+  flex-direction: column;
+
+  @media (min-width: @mobile) {
+    left: initial;
+  }
+
+  .alert {
+    padding: @padding-md;
+    border-radius: 6px;
+
+    @media (min-width: @mobile) {
+      width: 260px;
+    }
+
+      &.success {
+      background-color: @color-success;
+    }
+
+    &.warning {
+      background-color: @color-error;
+    }
+  }
+}

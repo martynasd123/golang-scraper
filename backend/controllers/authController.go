@@ -39,7 +39,7 @@ func (controller *AuthController) Authenticate(ctx *gin.Context) {
 			ctx.String(http.StatusForbidden, "username or password is incorrect")
 		} else {
 			log.Println(err)
-			ctx.String(http.StatusInternalServerError, err.Error())
+			ctx.String(http.StatusInternalServerError, "something went wrong")
 		}
 		return
 	}
