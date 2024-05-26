@@ -20,3 +20,5 @@
 # Go workspace file
 go.work
 ./backend/golang-scraper
+node_modules
+.idea
