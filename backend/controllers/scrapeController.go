@@ -26,7 +26,7 @@ func CreateScrapeController(service *scrapeService.ScrapeService) *ScrapeControl
 func (controller *ScrapeController) AddTask(ctx *gin.Context) {
 	var body request.AddTaskRequest
 	if err := ctx.ShouldBindJSON(&body); err != nil {
-		// todo
+		ctx.String(http.StatusBadRequest, "Could not parse request")
 		return
 	}
 
@@ -38,7 +38,6 @@ func (controller *ScrapeController) AddTask(ctx *gin.Context) {
 
 	if parsedUrl.Scheme != "https" && parsedUrl.Scheme != "http" {
 		// Only http/https is supported
-		// todo
 		ctx.String(http.StatusBadRequest, "Invalid URL")
 		return
 	}
