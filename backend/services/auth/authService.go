@@ -2,6 +2,7 @@ package authService
 
 import (
 	"crypto/sha256"
+	"encoding/base64"
 	"errors"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
@@ -79,7 +80,7 @@ func generateDeviceIdentifier(ip string, agent string) *string {
 	h := sha256.New()
 	h.Write([]byte(ip + agent))
 	result := h.Sum(nil)
-	passwordStr := string(result)
+	passwordStr := base64.URLEncoding.EncodeToString(result)
 	return &passwordStr
 }
 
@@ -131,7 +132,7 @@ func (authService *AuthService) RefreshToken(
 		return nil, nil, nil, ErrRefreshTokenExpired
 	}
 
-	if generateDeviceIdentifier(ip, agent) != user.DeviceIdentifier {
+	if *generateDeviceIdentifier(ip, agent) != *user.DeviceIdentifier {
 		return nil, nil, nil, errors.Join(ErrInvalidDeviceIdentifier, err)
 	}
 

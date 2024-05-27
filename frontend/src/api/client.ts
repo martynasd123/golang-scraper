@@ -16,7 +16,7 @@ AuthenticatedClient.interceptors.response.use(null, async (err) => {
                 }
             });
             // Refresh token succeeded - retry original request
-            axios(err.config);
+            return axios(err.config);
         } catch {
             localStorage.removeItem("username")
             return await Promise.reject(err);
