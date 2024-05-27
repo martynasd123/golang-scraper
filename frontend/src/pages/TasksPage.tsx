@@ -7,7 +7,7 @@ import {useNavigate} from "react-router-dom";
 import {AlertContext, AlertType} from "../contexts/AlertContext";
 import {AxiosError} from "axios";
 import { FaAngleRight as RightArrow } from "react-icons/fa6";
-import {HeaderContext} from "../contexts/HeaderContext";
+import Layout from "../components/Layout";
 
 interface TaskCard {
     id: number;
@@ -67,35 +67,38 @@ const TasksPage: React.FC = () => {
     }, [])
 
     return <>
-        <form className="new-task-form" onSubmit={handleAddNewTask}>
-            <h2>Add a new scraping task</h2>
-            <div className="input-group">
-                <label htmlFor="new-scrape-task-url-input">Enter URL to scrape</label>
-                <input value={newScrapeTaskUrl}
-                       type="url"
-                       id="new-scrape-task-url-input"
-                       placeholder="www.your-url.com"
-                       onChange={e => setNewScrapeTaskUrl(e.target.value)}
-                />
-            </div>
-            <input type="submit" value="Start scraping"/>
-        </form>
-        <h2>History</h2>
-        {tasks && tasks.map(task => <CardComponent className="task-card" key={task.id}>
-            <div>
-                <h3>{task.link}</h3>
-                {task.pageTitle && <div>
-                    {task.pageTitle}
-                </div>}
-                {<div>Task status: {task.status}</div>}
-                {task.error && <div>
-                    Error encountered: {task.error}
-                </div>}
-            </div>
-            <div onClick={() => navigate(`/task/${task.id}`)}>
-                <RightArrow/>
-            </div>
-        </CardComponent>)}
+        <Layout.Header />
+        <Layout.Content>
+            <form className="new-task-form" onSubmit={handleAddNewTask}>
+                <h2>Add a new scraping task</h2>
+                <div className="input-group">
+                    <label htmlFor="new-scrape-task-url-input">Enter URL to scrape</label>
+                    <input value={newScrapeTaskUrl}
+                           type="url"
+                           id="new-scrape-task-url-input"
+                           placeholder="www.your-url.com"
+                           onChange={e => setNewScrapeTaskUrl(e.target.value)}
+                    />
+                </div>
+                <input type="submit" value="Start scraping"/>
+            </form>
+            <h2>History</h2>
+            {tasks && tasks.map(task => <CardComponent className="task-card" key={task.id}>
+                <div>
+                    <h3>{task.link}</h3>
+                    {task.pageTitle && <div>
+                        {task.pageTitle}
+                    </div>}
+                    {<div>Task status: {task.status}</div>}
+                    {task.error && <div>
+                        Error encountered: {task.error}
+                    </div>}
+                </div>
+                <div onClick={() => navigate(`/task/${task.id}`)}>
+                    <RightArrow/>
+                </div>
+            </CardComponent>)}
+        </Layout.Content>
     </>
 }
 

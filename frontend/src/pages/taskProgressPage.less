@@ -12,6 +12,24 @@
   height: 100%;
 }
 
+.task-page-title-wrapper {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+
+  .interrupt-icon {
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    &.disabled {
+      color: @color-neutral;
+      cursor: initial;
+    }
+  }
+}
+
 .task-info-fields-container {
   display: flex;
   flex-direction: column;

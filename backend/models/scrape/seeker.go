@@ -7,17 +7,24 @@ const (
 	UpdateTypeLinkCrawled
 	UpdateTypeError
 	UpdateTypeFinished
+	UpdateTypeInterrupted
 )
 
 const (
-	// Did not start the task yet
+	// Did not start the task yet, but it has been queued
 	StatusPending = "PENDING"
 	// Performing the initial GET request and parsing the page
 	StatusInitiating = "INITIATING"
 	// Trying to access all related links
 	StatusTryingLinks = "TRYING_LINKS"
-	StatusFinished    = "FINISHED"
-	StatusError       = "ERROR"
+	// Task was completed successfully
+	StatusFinished = "FINISHED"
+	// Task was interrupted
+	StatusInterrupted = "INTERRUPTED"
+	// Interrupt signal received - waiting for seeker/spiders to finish
+	StatusInterrupting = "INTERRUPTING"
+	// Error occurred
+	StatusError = "ERROR"
 )
 
 // ProcessingUpdate is the interface for all seeker updates
@@ -42,6 +49,13 @@ type ErrorUpdate struct {
 
 func (e ErrorUpdate) Type() int {
 	return UpdateTypeError
+}
+
+type InterruptedUpdate struct {
+}
+
+func (e InterruptedUpdate) Type() int {
+	return UpdateTypeInterrupted
 }
 
 // PageBaseInfoUpdate is and update sent before the spiders are in action, after the initial GET request.

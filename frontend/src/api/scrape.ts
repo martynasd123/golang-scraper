@@ -24,7 +24,9 @@ export enum TaskStatus {
     STATUS_INITIATING = "INITIATING",
     STATUS_TRYING_LINKS = "TRYING_LINKS",
     STATUS_FINISHED = "FINISHED",
-    STATUS_ERROR = "ERROR"
+    STATUS_ERROR = "ERROR",
+    STATUS_INTERRUPTED = "INTERRUPTED",
+    STATUS_INTERRUPTING = "INTERRUPTING"
 }
 
 export interface TaskStateUpdate {
@@ -43,6 +45,9 @@ export interface TaskStateUpdate {
 
 export const sendAddTaskRequest = (request: AddTaskRequest) => AuthenticatedClient
     .post<AddTaskRequest, AxiosResponse<AddTaskResponse>>("/api/scrape/add-task", request)
+
+export const sendInterruptTaskRequest = (id: string) => AuthenticatedClient
+    .post<void, AxiosResponse<void>>(`/api/scrape/task/${id}/interrupt`)
 
 export const sendGetTasksRequest = () => AuthenticatedClient
     .get<AddTaskRequest, AxiosResponse<TaskListItemResponse[]>>("/api/scrape/tasks")

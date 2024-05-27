@@ -6,6 +6,60 @@
   display: flex;
   flex-direction: column;
 
+  .header {
+    color: @color-background;
+    background-color: @color-primary;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+
+    .header-content {
+      flex: 1;
+      height: 30px;
+      padding: @padding-md;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      span {
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-start;
+        align-items: center;
+        gap: @margin-md;
+
+        .back-button {
+          cursor: pointer;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+      }
+
+      h2 {
+        font-weight: @font-weight-medium;
+        font-size: @font-size-md;
+      }
+    }
+
+    .progress-indicator-container {
+      position: relative;
+
+      .progress-indicator {
+        background-color: @color-secondary;
+        height: 4px;
+        position: absolute;
+        left: 0;
+        transition: width 0.5s;
+
+        &.error {
+          background-color: @color-error;
+        }
+
+      }
+    }
+  }
+
   .page-content-wrapper {
     flex: 1;
     display: flex;
@@ -19,6 +73,13 @@
       display: flex;
       flex-direction: column;
       max-width: @mobile;
+
+      &::after {
+        content: "";
+        min-height: @padding-lg;
+        display: block;
+      }
     }
+
   }
 }

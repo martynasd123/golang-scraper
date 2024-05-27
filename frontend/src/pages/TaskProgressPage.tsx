@@ -1,11 +1,14 @@
 import * as React from "react"
 import {useContext, useEffect, useState} from "react"
 import {useParams} from "react-router-dom";
-import {TaskStateUpdate, TaskStatus} from "../api/scrape";
+import {sendInterruptTaskRequest, TaskStateUpdate, TaskStatus} from "../api/scrape";
 import "./taskProgressPage.less"
-import {HeaderContext} from "../contexts/HeaderContext";
 import LoaderComponent from "../components/LoaderComponent";
 import {AlertContext, AlertType} from "../contexts/AlertContext";
+import Layout from "../components/Layout";
+import {AxiosError} from "axios";
+import {FaRegCircleStop as StopIcon} from "react-icons/fa6";
+import classNames from "../util/classNames";
 
 const TaskInfoField: React.FC<{ name: string, value: string | number }> = ({name, value}) => {
     return <div className="task-info-field">
@@ -29,20 +32,30 @@ const TaskInfoFields: React.FC<{ task: TaskStateUpdate }> = ({task}) => {
         <TaskInfoField name="Links crawled in total" value={task.crawledLinks}/>
         <TaskInfoField name="Html version" value={task.htmlVersion}/>
         {(task.headingsByLevel || new Array(6).fill(null)).map((number, i) =>
-            <TaskInfoField key={i} name={`<h${i+1}> headings`} value={number}/>)}
+            <TaskInfoField key={i} name={`<h${i + 1}> headings`} value={number}/>)}
     </div>
+}
+
+function mapErrorMessage(err: AxiosError) {
+    if (err.response?.status == 400) {
+        if (err.response.data == "task already in final state") {
+            return "Task already finished"
+        } else if (err.response.data == "interrupt already sent") {
+            return "Interrupt signal already sent"
+        }
+    }
+    return "Unexpected error"
 }
 
 const TaskProgressPage: React.FC = () => {
     const [taskState, setTaskState] = useState<TaskStateUpdate>()
     const {id} = useParams()
 
-    const { setProgressBarProgress, setBackButtonLink } = useContext(HeaderContext)
     const [err, setErr] = useState<string>(null)
 
     const {showAlert} = useContext(AlertContext)
 
-    const getProgressPercentage = () => {
+    const getProgressPercentage: () => number = () => {
         if (taskState == null) {
             return null
         }
@@ -55,11 +68,6 @@ const TaskProgressPage: React.FC = () => {
         }
         return ((taskState.crawledLinks * 100) / totalLinks)
     };
-
-    useEffect(() => {
-        setProgressBarProgress(getProgressPercentage())
-        setBackButtonLink("/")
-    }, [taskState])
 
     useEffect(() => {
         const eventSource = new EventSource(`/api/scrape/task/${id}/listen`);
@@ -87,24 +95,60 @@ const TaskProgressPage: React.FC = () => {
         };
     }, [])
 
+    const isInterruptibleState = [TaskStatus.STATUS_PENDING,
+        TaskStatus.STATUS_INITIATING,
+        TaskStatus.STATUS_TRYING_LINKS].includes(taskState?.status)
+
+    let PageContent;
+
+    const interruptTask = () => {
+        if (!isInterruptibleState) {
+            return
+        }
+        sendInterruptTaskRequest(id)
+            .then(() => {
+                showAlert({
+                    type: AlertType.SUCCESS,
+                    message: "Interrupt signal sent"
+                })
+            })
+            .catch((err) => {
+                showAlert({
+                    type: AlertType.WARNING,
+                    message: mapErrorMessage(err)
+                })
+            })
+    };
     if (err) {
-        return <div>Error occurred while retrieving this task</div>
+        PageContent = <div>Error occurred while retrieving this task</div>
+    } else if (!taskState) {
+        PageContent = <LoaderComponent className="task-page-loader-wrapper"/>
+    } else {
+        PageContent = <>
+            <div className="task-page-title-wrapper">
+                <h2>Task #{taskState.id}</h2>
+                <div onClick={interruptTask}
+                     className={classNames("interrupt-icon", {disabled: !isInterruptibleState})}>
+                    <StopIcon size={24}/>
+                </div>
+            </div>
+            <div>Status: {taskState.status}
+            </div>
+            {taskState.error ?
+                <div className="err-container">Encountered error: {taskState.error}</div>
+                : <TaskInfoFields task={taskState}/>}
+        </>
     }
 
-    if (!taskState) {
-        return <LoaderComponent className="task-page-loader-wrapper"/>
-    }
+    const isErrorState = taskState?.status === TaskStatus.STATUS_ERROR
+        || taskState?.status == TaskStatus.STATUS_INTERRUPTED
 
     return <>
-        <h2>Task #{taskState.id}</h2>
-        <div>Status: {taskState.status}</div>
-        {taskState.error ? <div className="err-container">Encountered error: {taskState.error}</div>
-            : <TaskInfoFields task={taskState}/>}
-
-        <div className="progress-indicator" style={{
-            width: `${getProgressPercentage()}%`
-        }}></div>
-
+        <Layout.Header backButtonLink={"/"} progressBarErroneous={isErrorState}
+                       progressBarProgress={getProgressPercentage()}/>
+        <Layout.Content>
+            {PageContent}
+        </Layout.Content>
     </>
 }
 

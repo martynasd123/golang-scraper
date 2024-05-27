@@ -39,10 +39,19 @@ func (spider *Spider) Crawl(link *url.URL) *models.LinkCrawledUpdate {
 			TransportError: true,
 		}
 	}
+	defer closeHttp(resp)
+
 	return &models.LinkCrawledUpdate{
 		Link:           link,
 		Status:         resp.StatusCode,
 		TransportError: false,
+	}
+}
+
+func closeHttp(resp *http.Response) {
+	err := resp.Body.Close()
+	if err != nil {
+		log.Printf("failed to close response body: %v", err)
 	}
 }
 

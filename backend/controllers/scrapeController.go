@@ -1,6 +1,7 @@
 package authController
 
 import (
+	"errors"
 	"io"
 	"log"
 	"net/http"
@@ -64,6 +65,26 @@ func (controller *ScrapeController) GetAllTasks(ctx *gin.Context) {
 		taskListItems = append(taskListItems, response.CreateTaskListItemResponse(task))
 	}
 	ctx.JSON(http.StatusOK, taskListItems)
+}
+
+func (controller *ScrapeController) InterruptTask(ctx *gin.Context) {
+	taskId, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		ctx.String(400, "invalid task id")
+		return
+	}
+	err = controller.service.InterruptTask(taskId)
+	if err != nil {
+		switch {
+		case errors.Is(err, scrapeService.ErrTaskInFinalState):
+			ctx.String(http.StatusBadRequest, "task already in final state")
+		case errors.Is(err, scrapeService.ErrInterruptAlreadySent):
+			ctx.String(http.StatusBadRequest, "interrupt already sent")
+		default:
+			ctx.String(http.StatusInternalServerError, "something went wrong")
+		}
+		return
+	}
 }
 
 func (controller *ScrapeController) Listen(ctx *gin.Context) {
