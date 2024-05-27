@@ -3,6 +3,7 @@ package seeker
 import (
 	"log"
 	"net/url"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -24,19 +25,19 @@ func extractLink(node *html.Node) (*url.URL, bool) {
 	if node.Type == html.ElementNode && node.Data == "a" {
 		attr, found := getAttr(node, "href")
 		if found {
-			url, err := url.Parse(attr.Val)
+			parsedUrl, err := url.Parse(attr.Val)
 			if err == nil {
-				if url.Scheme != "https" && url.Scheme != "http" && url.Scheme != "" {
+				if parsedUrl.Scheme != "https" && parsedUrl.Scheme != "http" && parsedUrl.Scheme != "" {
 					// Ignore mailto: and other similar links
 					// Note that when scheme is empty, it means we encountered a relative link.
 					// We want to allow those.
 					return nil, false
 				}
-				url.Fragment = "" // Ignore fragment parts of links
+				parsedUrl.Fragment = "" // Ignore fragment parts of links
 			} else {
 				log.Printf("Failed to parse link: %s. Got error: %s", attr, err)
 			}
-			return url, err == nil
+			return parsedUrl, err == nil
 		}
 	}
 	return nil, false
@@ -139,7 +140,7 @@ func ParseBaseInfo(rootNode *html.Node, pageLink url.URL) *models.PageBaseInfo {
 		}
 		foundLoginForm = foundLoginForm || isLoginForm(node)
 		if isDoctypeNode(node) {
-			htmlVersion = strings.TrimPrefix(node.Data, "html")
+			htmlVersion = parseHtmlVersion(node)
 		}
 		if isHeaderNode(node) {
 			title = parseHeaders(node)
@@ -152,6 +153,10 @@ func ParseBaseInfo(rootNode *html.Node, pageLink url.URL) *models.PageBaseInfo {
 
 	internalLinks := calcInternalLinks(pageLink, &links)
 
+	if htmlVersion == "" {
+		htmlVersion = "Unspecified"
+	}
+
 	return &models.PageBaseInfo{
 		HtmlVersion:      htmlVersion,
 		PageTitle:        title,
@@ -160,5 +165,14 @@ func ParseBaseInfo(rootNode *html.Node, pageLink url.URL) *models.PageBaseInfo {
 		InternalLinks:    internalLinks,
 		ExternalLinks:    len(links) - internalLinks,
 		Links:            links.Values(),
+	}
+}
+
+func parseHtmlVersion(node *html.Node) string {
+	if node.Attr == nil {
+		return "HTML 5.0"
+	} else {
+		r := regexp.MustCompile("(?:HTML|XHTML) \\d+\\.\\d+")
+		return r.FindString(node.Attr[0].Val)
 	}
 }

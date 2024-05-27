@@ -12,17 +12,16 @@ import (
 )
 
 var (
-	ErrUserNotExist                     = errors.New("user does not exist")
-	ErrRefreshTokenNotExist             = errors.New("refresh token does not exist")
-	ErrRefreshTokenMismatch             = errors.New("refresh token does not match")
-	ErrRefreshTokenExpired              = errors.New("refresh token is expired")
-	ErrAccessTokenInvalid               = errors.New("access token is invalid")
-	ErrInvalidDeviceIdentifier          = errors.New("invalid device identifier")
-	ErrCouldNotGenerateAccessToken      = errors.New("could not generate access token")
-	ErrCouldNotGenerateDeviceIdentifier = errors.New("could not generate device identifier")
-	ErrUserPersistenceError             = errors.New("could not update user")
-	ErrPasswordIncorrect                = errors.New("password is incorrect")
-	ErrCouldNotHashPassword             = errors.New("password hashing failed")
+	ErrUserNotExist                = errors.New("user does not exist")
+	ErrRefreshTokenNotExist        = errors.New("refresh token does not exist")
+	ErrRefreshTokenMismatch        = errors.New("refresh token does not match")
+	ErrRefreshTokenExpired         = errors.New("refresh token is expired")
+	ErrAccessTokenInvalid          = errors.New("access token is invalid")
+	ErrInvalidDeviceIdentifier     = errors.New("invalid device identifier")
+	ErrCouldNotGenerateAccessToken = errors.New("could not generate access token")
+	ErrUserPersistenceError        = errors.New("could not update user")
+	ErrPasswordIncorrect           = errors.New("password is incorrect")
+	ErrCouldNotHashPassword        = errors.New("password hashing failed")
 )
 
 var JwtSecretKey = "Some very secret key"
