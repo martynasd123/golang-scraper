@@ -30,6 +30,7 @@ const TaskInfoFields: React.FC<{ task: TaskStateUpdate }> = ({task}) => {
         <TaskInfoField name="Internal links" value={task.internalLinks}/>
         <TaskInfoField name="External links" value={task.externalLinks}/>
         <TaskInfoField name="Inaccessible links" value={task.inaccessibleLinks}/>
+        <TaskInfoField name="Contains login form" value={task.loginFormPresent == null ? null : task.loginFormPresent.toString()}/>
         <TaskInfoField name="Links crawled in total" value={task.crawledLinks}/>
         <TaskInfoField name="Html version" value={task.htmlVersion}/>
         {(task.headingsByLevel || new Array(6).fill(null)).map((number, i) =>

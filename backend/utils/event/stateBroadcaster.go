@@ -27,7 +27,7 @@ func CreateStateBroadcaster[T any]() *StateBroadcaster[T] {
 		addSubscriber:    make(chan Subscriber[T]),
 		removeSubscriber: make(chan Subscriber[T]),
 		publisher:        make(chan T),
-		stateUpdates:     make(chan T),
+		stateUpdates:     make(chan T, 10),
 		newestState:      *new(T),
 	}
 }
@@ -41,7 +41,6 @@ func (broadcaster *StateBroadcaster[T]) notifyListeners() {
 func (broadcaster *StateBroadcaster[T]) closeListeners() {
 	for _, subscriber := range broadcaster.subscribers {
 		close(subscriber.Data)
-		close(subscriber.Done)
 	}
 }
 
@@ -49,7 +48,6 @@ func (broadcaster *StateBroadcaster[T]) closeListener(subscriber Subscriber[T]) 
 	for i, sub := range broadcaster.subscribers {
 		if sub == subscriber {
 			close(subscriber.Data)
-			close(subscriber.Done)
 			broadcaster.subscribers = append(broadcaster.subscribers[:i], broadcaster.subscribers[i+1:]...)
 		}
 	}
@@ -83,14 +81,15 @@ func (broadcaster *StateBroadcaster[T]) Start(data T) {
 	}()
 }
 
-// Listen starts listening for updates. Caller must indicate when the data is not needed anymore by
-// writing to the done channel.
+// Listen starts listening for updates. Caller must write to done channel when updates are no longer needed,
+// unless the data channel has been closed. It is the responsibility of the caller
+// to ensure that the done channel is closed after it is no longer needed.
 // Returns:
 //
 //	data (<-chan T): The channel through which data is to be sent
 //	done (chan<- struct{}): Channel through which to send signal when updates are no longer needed
 func (broadcaster *StateBroadcaster[T]) Listen() (data <-chan T, done chan<- struct{}) {
-	subscriber := Subscriber[T]{Data: make(chan T), Done: make(chan struct{})}
+	subscriber := Subscriber[T]{Data: make(chan T, 1), Done: make(chan struct{})}
 	go func() {
 		select {
 		case _, ok := <-subscriber.Done:

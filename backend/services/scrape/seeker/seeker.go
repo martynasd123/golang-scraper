@@ -73,7 +73,7 @@ func (seeker *Seeker) Seek() {
 	}
 	resp, err := client.Get(seeker.link.String())
 
-	if err != nil {
+	if err != nil || resp.StatusCode != http.StatusOK {
 		seeker.UpdateChannel <- &ErrorUpdate{Error: fmt.Errorf("failed to GET initial page: %v", err)}
 		return
 	}

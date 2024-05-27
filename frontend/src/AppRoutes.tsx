@@ -5,6 +5,7 @@ import TasksPage from "./pages/TasksPage";
 import TaskProgressPage from "./pages/TaskProgressPage";
 import LoginPage from "./pages/LoginPage";
 import React from "react";
+import NotFoundPage from "./pages/NotFoundPage";
 
 const AppRoutes: React.FC = () => {
     return <BrowserRouter>
@@ -16,6 +17,7 @@ const AppRoutes: React.FC = () => {
             <Route path="/login">
                 <Route index element={unauthenticatedOnly(LoginPage)}/>
             </Route>
+            <Route path="*" element={<NotFoundPage/>}/>
         </Routes>
     </BrowserRouter>
 }

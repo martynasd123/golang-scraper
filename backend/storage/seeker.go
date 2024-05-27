@@ -2,6 +2,7 @@ package storage
 
 import (
 	"errors"
+	"fmt"
 	"net/url"
 	"sort"
 	"sync"
@@ -24,8 +25,7 @@ type Task struct {
 	CTime             time.Time
 }
 
-func CreateTaskInitial(status string, link *url.URL) *Task {
-	currentTime := time.Now()
+func CreateTaskInitial(status string, link *url.URL, Ctime time.Time) *Task {
 	return &Task{
 		Id:                nil,
 		Link:              *link,
@@ -36,7 +36,7 @@ func CreateTaskInitial(status string, link *url.URL) *Task {
 		HtmlVersion:       nil,
 		PageTitle:         nil,
 		HeadingsByLevel:   nil,
-		CTime:             currentTime,
+		CTime:             Ctime,
 	}
 }
 
@@ -52,7 +52,7 @@ type TaskDao interface {
 	// RetrieveTaskById retrieves task by given ID, or nil if not found
 	RetrieveTaskById(id int) (*Task, error)
 
-	// Returns all tasks sorted by creation order
+	// Returns all tasks sorted by creation time in descending order
 	GetAllTasks() []*Task
 }
 
@@ -104,7 +104,7 @@ func (storage *TaskInMemoryDao) RetrieveTaskById(id int) (*Task, error) {
 	if value, ok := storage.tasks[id]; ok {
 		return &value, nil
 	}
-	return nil, errors.New("no task found with id " + string(id))
+	return nil, fmt.Errorf("no task found with id %d", id)
 }
 
 func CreateTaskInMemoryDao() *TaskInMemoryDao {

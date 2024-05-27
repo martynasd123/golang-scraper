@@ -83,6 +83,7 @@ const TasksPage: React.FC = () => {
                 <input type="submit" value="Start scraping"/>
             </form>
             <h2>History</h2>
+            {tasks != null && tasks.length == 0 && <div>No tasks yet</div>}
             {tasks && tasks.map(task => <CardComponent className="task-card" key={task.id}>
                 <div>
                     <h3>{task.link}</h3>

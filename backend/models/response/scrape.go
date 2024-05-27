@@ -23,6 +23,7 @@ type TaskStatusResponse struct {
 	PageTitle         *string `json:"pageTitle"`
 	HeadingsByLevel   *[6]int `json:"headingsByLevel"`
 	CrawledLinks      int     `json:"crawledLinks"`
+	LoginFormPresent  *bool   `json:"loginFormPresent"`
 	Error             *string `json:"error"`
 }
 
@@ -37,6 +38,7 @@ func CreateTaskStatusResponse(task *Task) *TaskStatusResponse {
 	response.Link = task.Link.String()
 	response.ExternalLinks = task.ExternalLinks
 	response.InternalLinks = task.InternalLinks
+	response.LoginFormPresent = task.LoginFormPresent
 	response.CrawledLinks = task.CrawledLinks
 	response.Error = task.Error
 	return response

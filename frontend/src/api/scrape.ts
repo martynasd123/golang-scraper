@@ -36,6 +36,7 @@ export interface TaskStateUpdate {
     externalLinks?: number;
     internalLinks?: number;
     inaccessibleLinks?: number;
+    loginFormPresent?: boolean;
     htmlVersion?: string;
     pageTitle?: string;
     headingsByLevel?: [number, number, number, number, number, number];

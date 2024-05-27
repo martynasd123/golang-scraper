@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/url"
 	"sync"
+	"time"
 )
 
 var (
@@ -229,28 +230,52 @@ func (service *ScrapeService) RegisterListener(taskId int) (err error, data <-ch
 //
 //	int: The unique seeker identifier
 func (service *ScrapeService) AddTask(link *url.URL) (int, error) {
-	task := storage.CreateTaskInitial(scrape.StatusPending, link)
+	taskId, _, err := service.setUpNewTask(link)
+	if err != nil {
+		return -1, err
+	}
+
+	// Push to channel so that it starts processing
+	go func() {
+		service.queuedTasks <- taskId
+	}()
+	return taskId, nil
+}
+
+func (service *ScrapeService) AddTaskAndListenForUpdates(link *url.URL) (taskId int, data <-chan storage.Task, done chan<- struct{}, err error) {
+	taskId, broadcaster, err := service.setUpNewTask(link)
+	if err != nil {
+		return -1, nil, nil, err
+	}
+
+	// Start listener before queueing task
+	data, done = broadcaster.Listen()
+
+	// Push to channel so that it starts processing
+	go func() {
+		service.queuedTasks <- taskId
+	}()
+	return taskId, data, done, nil
+}
+
+func (service *ScrapeService) setUpNewTask(link *url.URL) (int, *event.StateBroadcaster[storage.Task], error) {
+	task := storage.CreateTaskInitial(scrape.StatusPending, link, time.Now())
 
 	// Save the newly created task
 	newId, err := service.storage.StoreTask(task)
 	if err != nil {
-		return 0, err
+		return 0, nil, err
 	}
 
 	// CreateTaskService new state broadcaster
 	broadcaster, err := service.stateBroker.AddStateBroadcaster(newId)
 	if err != nil {
-		return -1, err
+		return 0, nil, err
 	}
 
 	// Publish initial state
 	broadcaster.Start(*task)
-
-	// Push to channel so that it starts processing
-	go func() {
-		service.queuedTasks <- *task.Id
-	}()
-	return newId, nil
+	return newId, broadcaster, nil
 }
 
 func (service *ScrapeService) InterruptTask(id int) error {
