@@ -26,6 +26,7 @@ const TaskInfoField: React.FC<{ name: string, value: string | number }> = ({name
 const TaskInfoFields: React.FC<{ task: TaskStateUpdate }> = ({task}) => {
     return <div className="task-info-fields-container">
         <TaskInfoField name="Link" value={task.link}/>
+        <TaskInfoField name="Page title" value={task.pageTitle}/>
         <TaskInfoField name="Internal links" value={task.internalLinks}/>
         <TaskInfoField name="External links" value={task.externalLinks}/>
         <TaskInfoField name="Inaccessible links" value={task.inaccessibleLinks}/>
